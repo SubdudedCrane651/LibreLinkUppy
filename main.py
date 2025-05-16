@@ -27,7 +27,7 @@ class LibreLinkUpClient:
 
     def load_credentials(self):
         """Load email and password from JSON file"""
-        json_file_path = os.path.join(os.path.dirname(__file__), "credentials.json")
+        json_file_path = os.path.join(os.path.expanduser("~"), "Documents", "credentials.json")
 
         if not os.path.exists(json_file_path):
             return None
@@ -89,13 +89,13 @@ class LibreLinkUpClient:
                 self.save_credentials(email, password)
                 return True
         
-        print("⚠ Invalid email or password. Please re-enter.")
-        self.prompt_user()
-        return False
+        # print("⚠ Invalid email or password. Please re-enter.")
+        # self.prompt_user()
+        # return False
 
     def save_credentials(self, email, password):
         """Save valid credentials to the JSON file"""
-        json_file_path = os.path.join(os.path.dirname(__file__), "credentials.json")
+        json_file_path = os.path.join(os.path.expanduser("~"), "Documents", "credentials.json")
         credentials = {"email": email, "password": password}
 
         with open(json_file_path, "w") as file:
@@ -150,9 +150,8 @@ class LibreLinkUpClient:
 # ✅ Run the client and fetch glucose data
 client = LibreLinkUpClient()
 
-if not client.login():
-    print("Login failed.")
-    exit()
+while not client.login():
+    print("⚠ Invalid credentials, please try again...")
 
 print("Login successful!") 
 
