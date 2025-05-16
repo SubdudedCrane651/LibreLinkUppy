@@ -57,6 +57,7 @@ class LibreLinkUpClient:
 
         #Email or password incorrect try again
         if error_code == 2:
+            os.system("cls")
             print("⚠ Invalid email or password. Please re-enter.")
             self.prompt_user()
             return False
@@ -151,7 +152,8 @@ class LibreLinkUpClient:
 client = LibreLinkUpClient()
 
 while not client.login():
-    print("⚠ Invalid credentials, please try again...")
+    pass
+    # print("⚠ Invalid credentials, please try again...")
 
 print("Login successful!") 
 
