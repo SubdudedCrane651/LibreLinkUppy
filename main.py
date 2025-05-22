@@ -5,6 +5,13 @@ import os
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from datetime import datetime, timedelta
+import winsound
+import time
+import pygame
+
+pygame.mixer.init()
+
+LAST_ALARM_TIME = 0
 
 class LibreLinkUpClient:
     def __init__(self):
@@ -110,6 +117,8 @@ class LibreLinkUpClient:
         self.save_credentials(email, password)
 
     def get_glucose_data(self):
+        global LAST_ALARM_TIME
+
         if not self.auth_token or not self.patient_id:
             raise ValueError("Not authenticated. Call login() first.")
 
@@ -162,7 +171,23 @@ fig, ax = plt.subplots()
 times = []
 values = []
 
+def sound_alarm():
+    #winsound.Beep(1000, 1000)  # ✅ Beeps for 1 second at 1000 Hz
+    pygame.mixer.music.load("alarm1.mp3")  # ✅ Ensure `alarm.mp3` is in your working directory
+    pygame.mixer.music.play()
+
+    
+import pyttsx3
+
+engine = pyttsx3.init()
+
+def speak_hypo_alert():
+    engine.say("You are presently in Hypo. Please take action.")
+    engine.runAndWait()
+
 def update_graph(i):
+    global LAST_ALARM_TIME
+
     """Fetch new glucose data and update the chart."""
     client.get_glucose_data()  # Fetch latest data every 5 sec
 
@@ -177,6 +202,13 @@ def update_graph(i):
         last_entry = client.glucose_data[-1]
         ax.text(times[-1], values[-1], f"{last_entry['timestamp'].strftime('%m/%d/%Y %H:%M:%S')}\n{last_entry['value']} mmol/L", 
                 fontsize=12, color="red", ha="right")
+        
+        if last_entry['value'] < 4:
+            current_time = time.time()
+            if current_time - LAST_ALARM_TIME >= 60:  # ✅ Ensure alarm triggers only once per minute
+                sound_alarm()
+                speak_hypo_alert()
+                LAST_ALARM_TIME = current_time  # ✅ Update last alarm time
 
         ax.set_xlabel("Time (HH:00)")
         ax.set_ylabel("Glucose Level (mmol/L)")
