@@ -173,7 +173,7 @@ values = []
 
 def sound_alarm():
     #winsound.Beep(1000, 1000)  # ✅ Beeps for 1 second at 1000 Hz
-    pygame.mixer.music.load("alarm1.mp3")  # ✅ Ensure `alarm.mp3` is in your working directory
+    pygame.mixer.music.load("telephone-ring.mp3")  # ✅ Ensure `alarm.mp3` is in your working directory
     pygame.mixer.music.play()
 
     
