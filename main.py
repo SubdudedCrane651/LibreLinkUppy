@@ -5,11 +5,11 @@ import os
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from datetime import datetime, timedelta
-import winsound
 import time
 import pygame
 
-pygame.mixer.init()
+pygame.init()
+#pygame.mixer.init()
 
 LAST_ALARM_TIME = 0
 
