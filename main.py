@@ -224,7 +224,7 @@ def update_graph(i):
 
         plt.grid()
 
-# ✅ Auto-refresh chart every 5 seconds
-ani = animation.FuncAnimation(fig, update_graph, interval=5000)
+# ✅ Auto-refresh chart every 5 seconds 5000 1 minute 60000
+ani = animation.FuncAnimation(fig, update_graph, interval=60000)
 
 plt.show()
