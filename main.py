@@ -7,9 +7,9 @@ import matplotlib.animation as animation
 from datetime import datetime, timedelta
 import time
 import pygame
+import threading
 
 pygame.init()
-#pygame.mixer.init()
 
 LAST_ALARM_TIME = 0
 
@@ -30,7 +30,7 @@ class LibreLinkUpClient:
             "Version": "4.12.0",
             "Cache-Control": "no-cache"
         }
-        self.glucose_data = []  
+        self.glucose_data = []
 
     def load_credentials(self):
         """Load email and password from JSON file"""
@@ -62,7 +62,6 @@ class LibreLinkUpClient:
         json_response = response.json()
         error_code = json_response.get("status")
 
-        #Email or password incorrect try again
         if error_code == 2:
             os.system("cls")
             print("⚠ Invalid email or password. Please re-enter.")
@@ -93,13 +92,8 @@ class LibreLinkUpClient:
                 json_con = response.json()
                 self.patient_id = json_con["data"][0]["patientId"]
                 
-                # ✅ Save valid credentials back to JSON file
                 self.save_credentials(email, password)
                 return True
-        
-        # print("⚠ Invalid email or password. Please re-enter.")
-        # self.prompt_user()
-        # return False
 
     def save_credentials(self, email, password):
         """Save valid credentials to the JSON file"""
@@ -112,8 +106,7 @@ class LibreLinkUpClient:
     def prompt_user(self):
         """Prompt user for credentials and save to JSON"""
         email = input("Enter your email: ")
-        password = input("Enter your password: ")
-
+        password = input("Enter your password:")
         self.save_credentials(email, password)
 
     def get_glucose_data(self):
@@ -157,28 +150,20 @@ class LibreLinkUpClient:
         sha256_hash.update(input_string.encode("utf-8"))
         return sha256_hash.hexdigest()
 
-# ✅ Run the client and fetch glucose data
 client = LibreLinkUpClient()
 
 while not client.login():
     pass
-    # print("⚠ Invalid credentials, please try again...")
 
-print("Login successful!") 
+print("Login successful!")  
 
-# ✅ Set up real-time line chart
 fig, ax = plt.subplots()
-times = []
-values = []
 
 def sound_alarm():
-    #winsound.Beep(1000, 1000)  # ✅ Beeps for 1 second at 1000 Hz
-    pygame.mixer.music.load("telephone-ring.mp3")  # ✅ Ensure `alarm.mp3` is in your working directory
+    pygame.mixer.music.load("telephone-ring.mp3")
     pygame.mixer.music.play()
 
-    
 import pyttsx3
-
 engine = pyttsx3.init()
 
 def speak_hypo_alert():
@@ -188,43 +173,35 @@ def speak_hypo_alert():
 def update_graph(i):
     global LAST_ALARM_TIME
 
-    """Fetch new glucose data and update the chart."""
-    client.get_glucose_data()  # Fetch latest data every 5 sec
+    client.get_glucose_data()
 
     if client.glucose_data:
-        times = [entry["timestamp"] for entry in client.glucose_data]  # ✅ Keep timestamps as datetime objects
+        times = [entry["timestamp"] for entry in client.glucose_data]
         values = [entry["value"] for entry in client.glucose_data]
 
         ax.clear()
         ax.plot(times, values, marker="o", linestyle="-", color="b")
 
-        # ✅ Display the last glucose reading with DATE & TIME
         last_entry = client.glucose_data[-1]
         ax.text(times[-1], values[-1], f"{last_entry['timestamp'].strftime('%m/%d/%Y %H:%M:%S')}\n{last_entry['value']} mmol/L", 
                 fontsize=12, color="red", ha="right")
-        
+
         if last_entry['value'] < 4:
             current_time = time.time()
-            if current_time - LAST_ALARM_TIME >= 60:  # ✅ Ensure alarm triggers only once per minute
+            if current_time - LAST_ALARM_TIME >= 60:
                 sound_alarm()
                 speak_hypo_alert()
-                LAST_ALARM_TIME = current_time  # ✅ Update last alarm time
-
-        ax.set_xlabel("Time (HH:00)")
-        ax.set_ylabel("Glucose Level (mmol/L)")
-        ax.set_title("Real-time Glucose Monitoring")
-
-        # ✅ Set x-axis ticks at 1-hour intervals (HH:00 format)
-        first_time = times[0].replace(minute=0, second=0)  # Start at the first full hour
-        last_time = times[-1]
-        hourly_ticks = [first_time + timedelta(hours=i) for i in range((last_time - first_time).seconds // 3600 + 1)]
-        
-        ax.set_xticks(hourly_ticks)
-        ax.set_xticklabels([t.strftime("%H:00") for t in hourly_ticks], rotation=45, ha="right")
+                LAST_ALARM_TIME = current_time
 
         plt.grid()
 
-# ✅ Auto-refresh chart every 5 seconds 5000 1 minute 60000
-ani = animation.FuncAnimation(fig, update_graph, interval=60000)
+# ✅ **Runs glucose monitoring in a separate thread**  
+def monitor_glucose():
+    while True:
+        update_graph(0)  
+        time.sleep(60)  # ✅ Updated from 5 seconds to **60 seconds**
+
+thread = threading.Thread(target=monitor_glucose, daemon=True)
+thread.start()
 
 plt.show()
