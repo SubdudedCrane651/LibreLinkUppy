@@ -180,10 +180,18 @@ def sound_alarm():
 import pyttsx3
 
 engine = pyttsx3.init()
+voices = engine.getProperty('voices')
+
+for index, voice in enumerate(voices):
+    print(f"{index}: {voice.name} - {voice.id}")
+
+# Replace 0 with the index of the French voice you found
 
 def speak_hypo_alert():
-    engine.say("You are presently in Hypo. Please take action.")
-    engine.runAndWait()
+    #French voice using text2speech.py
+    os.system('C:\\Users\\rchrd\\AppData\\Local\\Microsoft\\WindowsApps\\python3.9.exe text2speech.py "--lang=fr" "Vous êtes actuellement en hypoglycémie. Veuillez prendre des mesures."')
+    #engine.say("You are presently in Hypo. Please take action.")
+    #engine.runAndWait()
 
 def update_graph(i):
     global LAST_ALARM_TIME
