@@ -134,20 +134,30 @@ class LibreLinkUpClient:
         """Parse and store all glucose readings"""
         new_data = []
 
-        if "graphData" in json_resp["data"]:
-            for item in json_resp["data"]["graphData"]:
+        # ✅ Safely parse graphData
+        graph_data = json_resp.get("data", {}).get("graphData", [])
+        for item in graph_data:
+            try:
                 new_data.append({
                     "timestamp": datetime.strptime(item["Timestamp"], "%m/%d/%Y %I:%M:%S %p"),
                     "value": float(item["Value"])
                 })
+            except (KeyError, ValueError) as e:
+                print(f"⚠ Skipping malformed graphData entry: {e}")
 
-        if "glucoseMeasurement" in json_resp["data"]["connection"]:
-            data = json_resp["data"]["connection"]["glucoseMeasurement"]
-            latest_entry = {
-                "timestamp": datetime.strptime(data["Timestamp"], "%m/%d/%Y %I:%M:%S %p"),
-                "value": float(data["Value"])
-            }
-            new_data.append(latest_entry)
+        # ✅ Safely parse glucoseMeasurement from connection
+        connection_data = json_resp.get("data", {}).get("connection", {})
+        glucose_measurement = connection_data.get("glucoseMeasurement")
+
+        if glucose_measurement:
+            try:
+                latest_entry = {
+                    "timestamp": datetime.strptime(glucose_measurement["Timestamp"], "%m/%d/%Y %I:%M:%S %p"),
+                    "value": float(glucose_measurement["Value"])
+                }
+                new_data.append(latest_entry)
+            except (KeyError, ValueError) as e:
+                print(f"⚠ Skipping malformed glucoseMeasurement entry: {e}")
 
         self.glucose_data = new_data
 
