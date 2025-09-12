@@ -217,8 +217,11 @@ class LibreLinkUpClient:
                 })
             except (KeyError, ValueError) as e:
                 print(f"⚠ Skipping malformed graphData entry: {e}")
-                
-        self.insert_graph_data(new_data)      
+        
+        # # ✅ Insert only the first (latest) reading
+        # if new_data:
+        #     latest = new_data[45]
+        #     self.insert_graph_data([latest])  # Wrap in list to match expected input
 
         # ✅ Safely parse glucoseMeasurement from connection
         connection_data = json_resp.get("data", {}).get("connection", {})
@@ -257,7 +260,7 @@ times = []
 values = []
 
 def sound_alarm():
-    #winsound.Beep(1000, 1000)  # ✅ Beeps for 1 second at 1000 Hz
+    #winsound.Beep(1000, 1000)  # ✅ Beeps for 1 second at 1000 Hz8
     pygame.mixer.music.load("telephone-ring.mp3")  # ✅ Ensure `alarm.mp3` is in your working directory
     pygame.mixer.music.play()
 
@@ -295,6 +298,8 @@ def update_graph(i):
         last_entry = client.glucose_data[-1]
         ax.text(times[-1], values[-1], f"{last_entry['timestamp'].strftime('%m/%d/%Y %H:%M:%S')}\n{last_entry['value']} mmol/L", 
                 fontsize=12, color="red", ha="right")
+        
+        #insert_graph_data([last_entry])  # Wrap in list to match expected input
         
         if last_entry['value'] < 4:
             current_time = time.time()
