@@ -3,3 +3,4 @@ pygame
 requests
 pyttsx3
 playsound
+mysql-connector-python

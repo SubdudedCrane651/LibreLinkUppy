@@ -7,6 +7,7 @@ import matplotlib.animation as animation
 from datetime import datetime, timedelta
 import time
 import pygame
+import mysql.connector
 
 pygame.init()
 #pygame.mixer.init()
@@ -31,6 +32,51 @@ class LibreLinkUpClient:
             "Cache-Control": "no-cache"
         }
         self.glucose_data = []  
+        
+ 
+    #Json format for mysql_config.json in your documents folder
+    #{  
+    #       "host":"hostname",
+    #       "user":"username",
+    #       "password":"password123",
+    #       "database":"databasename"
+    #}
+     
+    def load_mysql_config(self):
+        """Load MySQL config from separate JSON file"""
+        json_file_path = os.path.join(os.path.expanduser("~"), "Documents", "mysql_config.json")
+
+        if not os.path.exists(json_file_path):
+            print("⚠ MySQL config file not found.")
+            return None
+
+        try:
+            with open(json_file_path, "r") as file:
+                return json.load(file)
+        except json.JSONDecodeError as e:
+            print(f"❌ Error parsing MySQL config: {e}")
+            return None
+
+    def connect_to_mysql(self):
+        config = self.load_mysql_config()
+        if not config:
+            return None
+
+        try:
+            connection = mysql.connector.connect(
+                host=config["host"],
+                user=config["user"],
+                password=config["password"],
+                database=config["database"],
+                charset="utf8mb4",
+                #cursorclass="pymysql.cursors.Cursor",
+                connect_timeout=5
+            )
+            print("✅ Connected to MySQL")
+            return connection
+        except mysql.connector.Error as err:
+            print(f"❌ MySQL connection error: {err}")
+            return None
 
     def load_credentials(self):
         """Load email and password from JSON file"""
@@ -100,6 +146,33 @@ class LibreLinkUpClient:
         # print("⚠ Invalid email or password. Please re-enter.")
         # self.prompt_user()
         # return False
+        
+    def insert_graph_data(self, new_data):
+        config = self.load_mysql_config()
+        if not config:
+            print("⚠ MySQL config missing or invalid.")
+            return
+
+        connection = self.connect_to_mysql()
+        if not connection:
+            print("⚠ Skipping insert: No valid MySQL connection.")
+            return
+
+        try:
+            cursor = connection.cursor()
+            query = """
+                INSERT INTO glucose_readings (value, timestamp)
+                VALUES (%s, %s)
+            """
+            for entry in new_data:
+                cursor.execute(query, (entry["value"], entry["timestamp"]))
+            connection.commit()
+            print(f"✅ Inserted {len(new_data)} glucose readings.")
+        except mysql.connector.Error as err:
+            print(f"❌ MySQL insert error: {err}")
+        finally:
+            cursor.close()
+            connection.close()  
 
     def save_credentials(self, email, password):
         """Save valid credentials to the JSON file"""
@@ -144,6 +217,8 @@ class LibreLinkUpClient:
                 })
             except (KeyError, ValueError) as e:
                 print(f"⚠ Skipping malformed graphData entry: {e}")
+                
+        self.insert_graph_data(new_data)      
 
         # ✅ Safely parse glucoseMeasurement from connection
         connection_data = json_resp.get("data", {}).get("connection", {})
