@@ -157,22 +157,38 @@ class LibreLinkUpClient:
         if not connection:
             print("⚠ Skipping insert: No valid MySQL connection.")
             return
-
+        
         try:
             cursor = connection.cursor()
-            query = """
-                INSERT INTO glucose_readings (value, timestamp)
-                VALUES (%s, %s)
-            """
+
             for entry in new_data:
-                cursor.execute(query, (entry["value"], entry["timestamp"]))
-            connection.commit()
-            print(f"✅ Inserted {len(new_data)} glucose readings.")
+                # Check if timestamp already exists
+                check_query = "SELECT COUNT(*) FROM glucose_readings WHERE timestamp = %s"
+                cursor.execute(check_query, (entry["timestamp"],))
+                count = cursor.fetchone()[0]
+
+                if count > 0:
+                    print(f"⚠ Skipping duplicate reading: {entry['timestamp']}")
+                    continue
+
+                try:
+                    cursor = connection.cursor()
+                    query = """
+                        INSERT INTO glucose_readings (value, timestamp)
+                        VALUES (%s, %s)
+                    """
+                    for entry in new_data:
+                        cursor.execute(query, (entry["value"], entry["timestamp"]))
+                    connection.commit()
+                    print(f"✅ Inserted {len(new_data)} glucose readings.")
+                except mysql.connector.Error as err:
+                    print(f"❌ MySQL insert error: {err}")
+                finally:
+                    cursor.close()
+                    connection.close()
+                    
         except mysql.connector.Error as err:
-            print(f"❌ MySQL insert error: {err}")
-        finally:
-            cursor.close()
-            connection.close()  
+                print(f"❌ MySQL error: {err}")         
 
     def save_credentials(self, email, password):
         """Save valid credentials to the JSON file"""
@@ -299,7 +315,7 @@ def update_graph(i):
         ax.text(times[-1], values[-1], f"{last_entry['timestamp'].strftime('%m/%d/%Y %H:%M:%S')}\n{last_entry['value']} mmol/L", 
                 fontsize=12, color="red", ha="right")
         
-        #insert_graph_data([last_entry])  # Wrap in list to match expected input
+        client.insert_graph_data([last_entry])  # Wrap in list to match expected input
         
         if last_entry['value'] < 4:
             current_time = time.time()
