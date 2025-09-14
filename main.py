@@ -160,6 +160,12 @@ class LibreLinkUpClient:
         
         try:
             cursor = connection.cursor()
+            
+             # 🧹 Delete readings older than 8 hours
+            cutoff = datetime.now() - timedelta(hours=8)
+            delete_query = "DELETE FROM glucose_readings WHERE timestamp < %s"
+            cursor.execute(delete_query, (cutoff,))
+            print(f"🧹 Deleted readings older than {cutoff.strftime('%Y-%m-%d %H:%M:%S')}")
 
             for entry in new_data:
                 # Check if timestamp already exists
@@ -173,6 +179,14 @@ class LibreLinkUpClient:
 
                 try:
                     cursor = connection.cursor()
+                    
+                     # 🧹 Delete readings older than 8 hours
+                    cutoff = datetime.now() - timedelta(hours=8)
+                    delete_query = "DELETE FROM glucose_readings WHERE timestamp < %s"
+                    cursor.execute(delete_query, (cutoff,))
+                    print(f"🧹 Deleted readings older than {cutoff.strftime('%Y-%m-%d %H:%M:%S')}")
+
+
                     query = """
                         INSERT INTO glucose_readings (value, timestamp)
                         VALUES (%s, %s)
