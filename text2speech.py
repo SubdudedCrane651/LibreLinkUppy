@@ -57,12 +57,12 @@ try:
         mytext.append(command)
 
   else:
-    playsound(os.path.dirname(__file__)+"/speak_0.mp3")
+    playsound(os.path.dirname(__file__)+r"/speak_0.mp3")
     sys.exit()
 
 except:
    try:
-    playsound(os.path.dirname(__file__)+"/speak_0.mp3")
+    playsound(os.path.dirname(__file__)+r"/speak_0.mp3")
    except:
     sys.exit()
 

@@ -293,7 +293,6 @@ def sound_alarm():
     #winsound.Beep(1000, 1000)  # ✅ Beeps for 1 second at 1000 Hz8
     pygame.mixer.music.load("telephone-ring.mp3")  # ✅ Ensure `alarm.mp3` is in your working directory
     pygame.mixer.music.play()
-
     
 import pyttsx3
 
@@ -307,7 +306,7 @@ for index, voice in enumerate(voices):
 
 def speak_hypo_alert():
     #French voice using text2speech.py
-    os.system('C:\\Users\\rchrd\\AppData\\Local\\Microsoft\\WindowsApps\\python3.9.exe text2speech.py "--lang=fr" "Vous êtes actuellement en hypoglycémie. Veuillez prendre des mesures."')
+    os.system('F:/Python/LibreLinkUppy/.venv/Scripts/python.exe text2speech.py "--lang=fr" "Vous êtes actuellement en hypoglycémie. Veuillez prendre des mesures."')
     #engine.say("You are presently in Hypo. Please take action.")
     #engine.runAndWait()
 
