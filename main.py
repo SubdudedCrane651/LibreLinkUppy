@@ -20,6 +20,10 @@ class LibreLinkUpClient:
         self.patient_id = None
         self.sha256_hash = None
         self.headers = {
+            "Content-Type": "application/json",
+            "User-Agent": "LibreLinkUp/4.16.0 Android",
+            "Accept": "application/json",
+            "version": "4.16.0",
             "Accept-Encoding": "gzip",
             "Pragma": "no-cache",
             "Connection": "Keep-Alive",
@@ -28,7 +32,6 @@ class LibreLinkUpClient:
             "Sec-CH-UA-Mobile": "?0",
             "User-Agent": "HTTP Debugger/9.0.0.12",
             "Product": "llu.android",
-            "Version": "4.12.0",
             "Cache-Control": "no-cache"
         }
         self.glucose_data = []  
@@ -352,6 +355,6 @@ def update_graph(i):
         plt.grid()
 
 # ✅ Auto-refresh chart every 5 seconds 5000 1 minute 60000
-ani = animation.FuncAnimation(fig, update_graph, interval=5000)
+ani = animation.FuncAnimation(fig, update_graph, interval=5000, cache_frame_data=False)
 
 plt.show()
