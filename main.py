@@ -222,9 +222,9 @@ class LibreLinkUpClient:
 
         self.save_credentials(email, password)
 
-    def get_glucose_data(self):
-        global LAST_ALARM_TIME
+    global LAST_ALARM_TIME
 
+    def get_glucose_data(self):
         if not self.auth_token or not self.patient_id:
             raise ValueError("Not authenticated. Call login() first.")
 
@@ -233,6 +233,14 @@ class LibreLinkUpClient:
 
         if response.status_code == 200:
             return self.parse_graph_data(response.json())
+
+        # If unauthorized, try re-authenticating
+        if response.status_code == 401:
+            print("Authentication failed. Retrying login...")
+            self.login()  # Assuming this refreshes auth_token and headers
+            response = requests.get(glucose_url, headers=self.headers)
+            if response.status_code == 200:
+                return self.parse_graph_data(response.json())
 
         raise Exception(f"Failed to retrieve glucose data: {response.status_code}")
 
