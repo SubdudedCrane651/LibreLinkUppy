@@ -289,11 +289,13 @@ class LibreLinkUpClient:
 # ✅ Run the client and fetch glucose data
 client = LibreLinkUpClient()
 
+import time
+
 while not client.login():
     pass
-    # print("⚠ Invalid credentials, please try again...")
 
-print("Login successful!") 
+print("Login successful!")
+time.sleep(1.5)  # 1.5 seconds is usually enough
 
 # ✅ Set up real-time line chart
 fig, ax = plt.subplots()
