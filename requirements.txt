@@ -1,5 +1,5 @@
 matplotlib
-pygame
+#pygame
 requests
 pyttsx3
 playsound

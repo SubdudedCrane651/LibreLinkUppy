@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from datetime import datetime, timedelta
 import time
-import pygame
+#import pygame
 import mysql.connector
 
-pygame.init()
+#pygame.init()
 #pygame.mixer.init()
 
 LAST_ALARM_TIME = 0
@@ -303,9 +303,10 @@ times = []
 values = []
 
 def sound_alarm():
+    pass
     #winsound.Beep(1000, 1000)  # ✅ Beeps for 1 second at 1000 Hz8
-    pygame.mixer.music.load("telephone-ring.mp3")  # ✅ Ensure `alarm.mp3` is in your working directory
-    pygame.mixer.music.play()
+    #pygame.mixer.music.load("telephone-ring.mp3")  # ✅ Ensure `alarm.mp3` is in your working directory
+    #pygame.mixer.music.play()
     
 import pyttsx3
 
