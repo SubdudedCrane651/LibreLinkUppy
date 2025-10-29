@@ -30,7 +30,6 @@ class LibreLinkUpClient:
             "Sec-Fetch-Mode": "cors",
             "Sec-Fetch-Site": "cross-site",
             "Sec-CH-UA-Mobile": "?0",
-            "User-Agent": "HTTP Debugger/9.0.0.12",
             "Product": "llu.android",
             "Cache-Control": "no-cache"
         }
@@ -229,6 +228,7 @@ class LibreLinkUpClient:
             raise ValueError("Not authenticated. Call login() first.")
 
         glucose_url = f"https://api.libreview.io/llu/connections/{self.patient_id}/graph"
+        time.sleep(1.5)  # 1.5 seconds is usually enough
         response = requests.get(glucose_url, headers=self.headers)
 
         if response.status_code == 200:
@@ -313,7 +313,8 @@ engine = pyttsx3.init()
 voices = engine.getProperty('voices')
 
 for index, voice in enumerate(voices):
-    print(f"{index}: {voice.name} - {voice.id}")
+    #print(f"{index}: {voice.name} - {voice.id}")
+    pass
 
 # Replace 0 with the index of the French voice you found
 
