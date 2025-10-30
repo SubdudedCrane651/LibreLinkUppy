@@ -12,6 +12,9 @@ import mysql.connector
 #pygame.init()
 #pygame.mixer.init()
 
+global region
+region = "ca"
+
 LAST_ALARM_TIME = 0
 
 class LibreLinkUpClient:
@@ -228,8 +231,8 @@ class LibreLinkUpClient:
             raise ValueError("Not authenticated. Call login() first.")
 
         # Try region-specific URL first
-        region = self.headers.get("Authorization", "").split(".")[-1] if self.headers.get("Authorization") else ""
-        base_url = f"https://api-ca.libreview.io" if region else "https://api.libreview.io"
+        #region = self.headers.get("Authorization", "").split(".")[-1] if self.headers.get("Authorization") else ""
+        base_url = f"https://api-{region}.libreview.io" if region else "https://api.libreview.io"
         glucose_url = f"{base_url}/llu/connections/{self.patient_id}/graph"
         
         print(f"Fetching data from: {glucose_url}")  # Debug URL
