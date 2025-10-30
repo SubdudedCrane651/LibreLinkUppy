@@ -227,12 +227,31 @@ class LibreLinkUpClient:
         if not self.auth_token or not self.patient_id:
             raise ValueError("Not authenticated. Call login() first.")
 
-        glucose_url = f"https://api.libreview.io/llu/connections/{self.patient_id}/graph"
-        time.sleep(1.5)  # 1.5 seconds is usually enough
+        # Try region-specific URL first
+        region = self.headers.get("Authorization", "").split(".")[-1] if self.headers.get("Authorization") else ""
+        base_url = f"https://api-ca.libreview.io" if region else "https://api.libreview.io"
+        glucose_url = f"{base_url}/llu/connections/{self.patient_id}/graph"
+        
+        print(f"Fetching data from: {glucose_url}")  # Debug URL
+        print(f"Headers: {self.headers}")  # Debug headers
+        
+        time.sleep(1.5)
         response = requests.get(glucose_url, headers=self.headers)
 
         if response.status_code == 200:
             return self.parse_graph_data(response.json())
+        
+        # If unauthorized, try re-authenticating
+        if response.status_code == 401:
+            print("Authentication failed. Retrying login...")
+            if self.login():  # Only proceed if login successful
+                response = requests.get(glucose_url, headers=self.headers)
+                if response.status_code == 200:
+                    return self.parse_graph_data(response.json())
+        
+        print(f"Response Status: {response.status_code}")  # Debug response
+        print(f"Response Body: {response.text}")  # Debug response content
+        raise Exception(f"Failed to retrieve glucose data: {response.status_code}")
 
         # If unauthorized, try re-authenticating
         if response.status_code == 401:
