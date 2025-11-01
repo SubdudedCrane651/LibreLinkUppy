@@ -356,40 +356,59 @@ def update_graph(i):
     if client.glucose_data:
         times = [entry["timestamp"] for entry in client.glucose_data]  # ✅ Keep timestamps as datetime objects
         values = [entry["value"] for entry in client.glucose_data]
-        print(f"Latest Reading: {times[-1].strftime('%m/%d/%Y %H:%M:%S')} - {values[-1]} mmol/L") 
-
-        ax.clear()
-        ax.plot(times, values, marker="o", linestyle="-", color="b")
-
-        # ✅ Display the last glucose reading with DATE & TIME
-        last_entry = client.glucose_data[-1]
-        ax.text(times[-1], values[-1], f"{last_entry['timestamp'].strftime('%m/%d/%Y %H:%M:%S')}\n{last_entry['value']} mmol/L", 
-                fontsize=12, color="red", ha="right")
+        print(f"Latest Reading: {times[-1].strftime('%m/%d/%Y %H:%M:%S')} - {values[-1]} mmol/L")   
         
-        client.insert_graph_data([last_entry])  # Wrap in list to match expected input
+
+        # ax.clear()
+        # ax.plot(times, values, marker="o", linestyle="-", color="b")
+
+        # # ✅ Display the last glucose reading with DATE & TIME
+        # last_entry = client.glucose_data[-1]
+        # ax.text(times[-1], values[-1], f"{last_entry['timestamp'].strftime('%m/%d/%Y %H:%M:%S')}\n{last_entry['value']} mmol/L", 
+        #         fontsize=12, color="red", ha="right")
         
-        if last_entry['value'] < 4:
-            current_time = time.time()
-            if current_time - LAST_ALARM_TIME >= 60:  # ✅ Ensure alarm triggers only once per minute
-                sound_alarm()
-                speak_hypo_alert()
-                LAST_ALARM_TIME = current_time  # ✅ Update last alarm time
-
-        ax.set_xlabel("Time (HH:00)")
-        ax.set_ylabel("Glucose Level (mmol/L)")
-        ax.set_title("Real-time Glucose Monitoring")
-
-        # ✅ Set x-axis ticks at 1-hour intervals (HH:00 format)
-        first_time = times[0].replace(minute=0, second=0)  # Start at the first full hour
-        last_time = times[-1]
-        hourly_ticks = [first_time + timedelta(hours=i) for i in range((last_time - first_time).seconds // 3600 + 1)]
+        # client.insert_graph_data([last_entry])  # Wrap in list to match expected input
         
-        ax.set_xticks(hourly_ticks)
-        ax.set_xticklabels([t.strftime("%H:00") for t in hourly_ticks], rotation=45, ha="right")
+        # if last_entry['value'] < 4:
+        #     current_time = time.time()
+        #     if current_time - LAST_ALARM_TIME >= 60:  # ✅ Ensure alarm triggers only once per minute
+        #         sound_alarm()
+        #         speak_hypo_alert()
+        #         LAST_ALARM_TIME = current_time  # ✅ Update last alarm time
 
-        plt.grid()
+        # ax.set_xlabel("Time (HH:00)")
+        # ax.set_ylabel("Glucose Level (mmol/L)")
+        # ax.set_title("Real-time Glucose Monitoring")
+
+        # # ✅ Set x-axis ticks at 1-hour intervals (HH:00 format)
+        # first_time = times[0].replace(minute=0, second=0)  # Start at the first full hour
+        # last_time = times[-1]
+        # hourly_ticks = [first_time + timedelta(hours=i) for i in range((last_time - first_time).seconds // 3600 + 1)]
+        
+        # ax.set_xticks(hourly_ticks)
+        # ax.set_xticklabels([t.strftime("%H:00") for t in hourly_ticks], rotation=45, ha="right")
+
+        # plt.grid()
 
 # ✅ Auto-refresh chart every 5 seconds 5000 1 minute 60000
-ani = animation.FuncAnimation(fig, update_graph, interval=5000, cache_frame_data=False)
+# ...existing code...
+# remove animation + GUI and poll every 5 seconds instead
+plt.close("all")
+print("Starting headless polling: calling client.get_glucose_data() every 5 seconds. Ctrl+C to stop.")
 
-plt.show()
+try:
+    while True:
+        try:
+            client.get_glucose_data()
+            if client.glucose_data:
+                last = client.glucose_data[-1]
+                print(f"[{last['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}] Glucose: {last['value']} mmol/L")
+                client.insert_graph_data([last])  # Wrap in list to match expected input
+            else:
+                print("⚠ No glucose data returned.")
+        except Exception as e:
+            print(f"⚠ Poll error: {e}")
+        time.sleep(5)
+except KeyboardInterrupt:
+    print("Polling stopped by user.")
+# ...existing code...
