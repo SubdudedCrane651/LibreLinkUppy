@@ -5,3 +5,4 @@ pyttsx3
 playsound
 mysql-connector-python
 gtts
+PyQt5
