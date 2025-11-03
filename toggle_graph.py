@@ -520,7 +520,7 @@ if __name__ == "__main__":
 
     main_widget = MainWidget()
     main_widget.setWindowTitle("LibreLinkUppy Control Panel")
-    #main_widget.show()
-    main_widget.showMinimized()
+    main_widget.show()
+    #main_widget.showMinimized()
     sys.exit(app.exec_())
 
