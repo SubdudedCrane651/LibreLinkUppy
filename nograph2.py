@@ -467,7 +467,7 @@ class MainWidget(QWidget):
         
         self.graph_window = None
 
-        #self.setup_ui()
+        self.setup_ui()
         
         self.setup_tray_icon()
         
