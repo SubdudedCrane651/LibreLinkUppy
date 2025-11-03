@@ -5,13 +5,15 @@ import os
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QApplication
 from PyQt5.QtCore import QTimer
 from PyQt5.QtCore import QThread, pyqtSignal
+from matplotlib.animation import FuncAnimation
+from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 import sys
 from datetime import datetime, timedelta
 import time
 #import pygame
-import mysql.connector
+#import mysql.connector
 
 #pygame.init()
 #pygame.mixer.init()
@@ -36,27 +38,22 @@ class PollingThread(QThread):
             f.write(f"{datetime.now().isoformat()} - {msg}\n")
 
     def run(self):
-        global LAST_ALARM_TIME
-       
-        plt.close("all")
-        print("Starting headless polling: calling client.get_glucose_data() every 5 seconds. Ctrl+C to stop.")
-        while True:
-            try:
+        try:
+            print("🚀 PollingThread started")
+            while True:
                 self.client.get_glucose_data()
                 if self.client.glucose_data:
                     last = self.client.glucose_data[-1]
                     print(f"[{last['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}] Glucose: {last['value']} mmol/L")
-                    #self.client.insert_graph_data([last])
                     try:
                         self.client.insert_graph_data([last])
                     except Exception as e:
-                        log_error(f"❌ insert_graph_data failed: {e}")
+                        print(f"❌ insert_graph_data failed: {e}")
                     self.data_updated.emit()
-                else:
-                    print("⚠ No glucose data returned.")
-            except Exception as e:
-                print(f"⚠ Poll error: {e}")
-            time.sleep(5)
+                time.sleep(5)
+        except Exception as e:
+            print(f"💥 PollingThread crashed: {e}")
+        
 class LibreLinkUpClient:
     def __init__(self):
         self.auth_token = None
@@ -90,6 +87,7 @@ class LibreLinkUpClient:
     def load_mysql_config(self):
         """Load MySQL config from separate JSON file"""
         json_file_path = os.path.join(os.path.expanduser("~"), "Documents", "mysql_config.json")
+        #print(f"Loading MySQL config from: {json_file_path}")
 
         if not os.path.exists(json_file_path):
             print("⚠ MySQL config file not found.")
@@ -97,6 +95,7 @@ class LibreLinkUpClient:
 
         try:
             with open(json_file_path, "r") as file:
+                #print("MySQL config file opened successfully.")
                 return json.load(file)
         except json.JSONDecodeError as e:
             print(f"❌ Error parsing MySQL config: {e}")
@@ -104,11 +103,18 @@ class LibreLinkUpClient:
 
     def connect_to_mysql(self):
         config = self.load_mysql_config()
+        #print("Connecting to MySQL with config:", config)
+        
         if not config:
+            print("❌ MySQL config missing or invalid.")
             return None
+        
+        #import mysql.connector
+        import pymysql
+        #print(f"📦 mysql.connector version: {mysql.connector.__version__}")
 
         try:
-            connection = mysql.connector.connect(
+            connection = pymysql.connect(
                 host=config["host"],
                 user=config["user"],
                 password=config["password"],
@@ -119,15 +125,17 @@ class LibreLinkUpClient:
             )
             print("✅ Connected to MySQL")
             return connection
-        except mysql.connector.Error as err:
+        except Exception as err:
             print(f"❌ MySQL connection error: {err}")
             return None
 
     def load_credentials(self):
         """Load email and password from JSON file"""
         json_file_path = os.path.join(os.path.expanduser("~"), "Documents", "credentials.json")
-
+        #print(f"Loading credentials from: {json_file_path}")
+        
         if not os.path.exists(json_file_path):
+            print("❌ Config file not found at expected path.")
             return None
 
         with open(json_file_path, "r") as file:
@@ -361,55 +369,64 @@ def speak_hypo_alert():
     os.system('F:/Python/LibreLinkUppy/.venv/Scripts/python.exe text2speech.py "--lang=fr" "Vous êtes actuellement en hypoglycémie. Veuillez prendre des mesures."')
     #engine.say("You are presently in Hypo. Please take action.")
     #engine.runAndWait()
+class GraphWindow(QWidget):
+    def __init__(self, client):
+        super().__init__()
+        self.client = client  # ✅ Store the client reference
 
-def update_graph(i):
-    global LAST_ALARM_TIME
+        self.setWindowTitle("Live Glucose Graph")
+        self.setGeometry(100, 100, 800, 500)
 
-    """Fetch new glucose data and update the chart."""
-    client.get_glucose_data()  # Fetch latest data every 5 sec
+        self.figure = Figure()
+        self.canvas = FigureCanvas(self.figure)
+        self.ax = self.figure.add_subplot(111)
 
-    if client.glucose_data:
-        times = [entry["timestamp"] for entry in client.glucose_data]  # ✅ Keep timestamps as datetime objects
-        values = [entry["value"] for entry in client.glucose_data]
-        print(f"Latest Reading: {times[-1].strftime('%m/%d/%Y %H:%M:%S')} - {values[-1]} mmol/L")   
-        
+        layout = QVBoxLayout()
+        layout.addWidget(self.canvas)
+        self.setLayout(layout)
 
-        # ax.clear()
-        # ax.plot(times, values, marker="o", linestyle="-", color="b")
+        # Optional: start animation here if needed
+        #self.ani = FuncAnimation(self.figure, self.update_graph, interval=5000)
 
-        # # ✅ Display the last glucose reading with DATE & TIME
-        # last_entry = client.glucose_data[-1]
-        # ax.text(times[-1], values[-1], f"{last_entry['timestamp'].strftime('%m/%d/%Y %H:%M:%S')}\n{last_entry['value']} mmol/L", 
-        #         fontsize=12, color="red", ha="right")
-        
-        # client.insert_graph_data([last_entry])  # Wrap in list to match expected input
-        
-        # if last_entry['value'] < 4:
-        #     current_time = time.time()
-        #     if current_time - LAST_ALARM_TIME >= 60:  # ✅ Ensure alarm triggers only once per minute
-        #         sound_alarm()
-        #         speak_hypo_alert()
-        #         LAST_ALARM_TIME = current_time  # ✅ Update last alarm time
+    def update_graph(self):
+        global LAST_ALARM_TIME
 
-        # ax.set_xlabel("Time (HH:00)")
-        # ax.set_ylabel("Glucose Level (mmol/L)")
-        # ax.set_title("Real-time Glucose Monitoring")
+        self.client.get_glucose_data()
 
-        # # ✅ Set x-axis ticks at 1-hour intervals (HH:00 format)
-        # first_time = times[0].replace(minute=0, second=0)  # Start at the first full hour
-        # last_time = times[-1]
-        # hourly_ticks = [first_time + timedelta(hours=i) for i in range((last_time - first_time).seconds // 3600 + 1)]
-        
-        # ax.set_xticks(hourly_ticks)
-        # ax.set_xticklabels([t.strftime("%H:00") for t in hourly_ticks], rotation=45, ha="right")
+        if self.client.glucose_data:
+            times = [entry["timestamp"] for entry in self.client.glucose_data]
+            values = [entry["value"] for entry in self.client.glucose_data]
 
-        # plt.grid()
+            self.ax.clear()
+            self.ax.plot(times, values, marker="o", linestyle="-", color="b")
 
-# ✅ Auto-refresh chart every 5 seconds 5000 1 minute 60000
-# ...existing code...
-# remove animation + GUI and poll every 5 seconds instead
+            last_entry = self.client.glucose_data[-1]
+            self.ax.text(times[-1], values[-1],
+                         f"{last_entry['timestamp'].strftime('%m/%d/%Y %H:%M:%S')}\n{last_entry['value']} mmol/L",
+                         fontsize=12, color="red", ha="right")
 
+            #client.insert_graph_data([last_entry])
 
+            if last_entry['value'] < 4:
+                current_time = time.time()
+                if current_time - LAST_ALARM_TIME >= 60:
+                    sound_alarm()
+                    speak_hypo_alert()
+                    LAST_ALARM_TIME = current_time
+
+            self.ax.set_xlabel("Time (HH:00)")
+            self.ax.set_ylabel("Glucose Level (mmol/L)")
+            self.ax.set_title("Real-time Glucose Monitoring")
+
+            first_time = times[0].replace(minute=0, second=0)
+            last_time = times[-1]
+            hourly_ticks = [first_time + timedelta(hours=i)
+                            for i in range((last_time - first_time).seconds // 3600 + 1)]
+
+            self.ax.set_xticks(hourly_ticks)
+            self.ax.set_xticklabels([t.strftime("%H:00") for t in hourly_ticks], rotation=45, ha="right")
+            self.ax.grid()
+            self.canvas.draw()
 class MainWidget(QWidget):
     def __init__(self):
         super().__init__()
@@ -444,7 +461,7 @@ class MainWidget(QWidget):
 
     def toggle_graph(self):
         if self.graph_window is None:
-            self.graph_window = GraphWindow()
+            self.graph_window = GraphWindow(self.client)  # ✅ Pass client here
             self.graph_window.show()
             self.toggle_button.setText("Hide Graph")
         else:
