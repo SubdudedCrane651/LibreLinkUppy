@@ -2,6 +2,8 @@ import requests
 import hashlib
 import json
 import os
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QSystemTrayIcon, QMenu, QAction
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QApplication
 from PyQt5.QtCore import QTimer
 from PyQt5.QtCore import QThread, pyqtSignal
@@ -461,8 +463,31 @@ class MainWidget(QWidget):
         self.polling_thread = PollingThread(self.client)  # ✅ Pass client here
         self.polling_thread.data_updated.connect(self.refresh_graph)
         self.polling_thread.start()
+        
+        self.graph_window = None
 
         self.setup_ui()
+        
+        #self.setup_tray_icon()
+        
+    def setup_tray_icon(self):
+        self.tray_icon = QSystemTrayIcon(self)
+        self.tray_icon.setIcon(QIcon("icon.png"))  # ✅ Use your app icon here
+
+        tray_menu = QMenu()
+
+        show_action = QAction("Show Graph", self)
+        show_action.triggered.connect(self.toggle_graph)
+        tray_menu.addAction(show_action)
+
+        exit_action = QAction("Exit", self)
+        exit_action.triggered.connect(QApplication.instance().quit)
+        tray_menu.addAction(exit_action)
+
+        self.tray_icon.setContextMenu(tray_menu)
+        self.tray_icon.setToolTip("LibreLinkUppy is running")
+        self.tray_icon.show()
+        
 
     def setup_ui(self):
         self.toggle_button = QPushButton("Show Graph")
