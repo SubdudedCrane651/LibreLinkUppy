@@ -446,7 +446,8 @@ class MainWidget(QWidget):
     def __init__(self):
         super().__init__()
         self.graph_window = None
-        self.toggle_button = None
+        self.toggle_button = QPushButton("Show Graph")
+        self.toggle_button.clicked.connect(self.toggle_graph)
         self.polling_thread = None
 
         self.init_login()
@@ -466,13 +467,13 @@ class MainWidget(QWidget):
         
         self.graph_window = None
 
-        self.setup_ui()
+        #self.setup_ui()
         
-        #self.setup_tray_icon()
+        self.setup_tray_icon()
         
     def setup_tray_icon(self):
         self.tray_icon = QSystemTrayIcon(self)
-        self.tray_icon.setIcon(QIcon("icon.png"))  # ✅ Use your app icon here
+        self.tray_icon.setIcon(QIcon("blood.png"))  # ✅ Use your app icon here
 
         tray_menu = QMenu()
 
@@ -487,7 +488,7 @@ class MainWidget(QWidget):
         self.tray_icon.setContextMenu(tray_menu)
         self.tray_icon.setToolTip("LibreLinkUppy is running")
         self.tray_icon.show()
-        
+     
 
     def setup_ui(self):
         self.toggle_button = QPushButton("Show Graph")
@@ -513,8 +514,13 @@ class MainWidget(QWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+
+    # ✅ Required for tray icon to stay alive when main window is hidden
+    app.setQuitOnLastWindowClosed(False)
+
     main_widget = MainWidget()
     main_widget.setWindowTitle("LibreLinkUppy Control Panel")
-    main_widget.show()
+    #main_widget.show()
+    main_widget.showMinimized()
     sys.exit(app.exec_())
 
