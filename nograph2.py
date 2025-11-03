@@ -363,7 +363,12 @@ for index, voice in enumerate(voices):
     pass
 
 # Replace 0 with the index of the French voice you found
-
+def speak_hyper_alert():
+    #French voice using text2speech.py
+    os.system('F:/Python/LibreLinkUppy/.venv/Scripts/python.exe text2speech.py "--lang=fr" "Vous êtes actuellement en hyperglycémie. Veuillez prendre des mesures."')
+    #engine.say("You are presently in Hyper. Please take action.")
+    #engine.runAndWait()
+    
 def speak_hypo_alert():
     #French voice using text2speech.py
     os.system('F:/Python/LibreLinkUppy/.venv/Scripts/python.exe text2speech.py "--lang=fr" "Vous êtes actuellement en hypoglycémie. Veuillez prendre des mesures."')
@@ -412,6 +417,14 @@ class GraphWindow(QWidget):
                 if current_time - LAST_ALARM_TIME >= 60:
                     sound_alarm()
                     speak_hypo_alert()
+                    LAST_ALARM_TIME = current_time
+                    
+            if last_entry['value'] > 13.9:
+                pass
+                current_time = time.time()
+                if current_time - LAST_ALARM_TIME >= 60:
+                    sound_alarm()
+                    speak_hyper_alert()
                     LAST_ALARM_TIME = current_time
 
             self.ax.set_xlabel("Time (HH:00)")
