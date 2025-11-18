@@ -367,7 +367,7 @@ for index, voice in enumerate(voices):
 # Replace 0 with the index of the French voice you found
 def speak_hyper_alert():
     #French voice using text2speech.py
-    os.system('F:/Python/LibreLinkUppy/.venv/Scripts/python.exe text2speech.py "--lang=fr" "Vous êtes actuellement en hyperglycémie. Veuillez prendre des mesures."')
+    os.system('python text2speech.py "--lang=fr" "Vous êtes actuellement en hyperglycémie. Veuillez prendre des mesures."')
     #engine.say("You are presently in Hyper. Please take action.")
     #engine.runAndWait()
     
