@@ -373,7 +373,7 @@ def speak_hyper_alert():
     
 def speak_hypo_alert():
     #French voice using text2speech.py
-    os.system('F:/Python/LibreLinkUppy/.venv/Scripts/python.exe text2speech.py "--lang=fr" "Vous êtes actuellement en hypoglycémie. Veuillez prendre des mesures."')
+    os.system('python text2speech.py "--lang=fr" "Vous êtes actuellement en hypoglycémie. Veuillez prendre des mesures."')
     #engine.say("You are presently in Hypo. Please take action.")
     #engine.runAndWait()
 class GraphWindow(QWidget):
