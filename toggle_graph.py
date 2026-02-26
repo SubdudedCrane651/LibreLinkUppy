@@ -20,6 +20,12 @@ import time
 #pygame.init()
 #pygame.mixer.init()
 
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+import os
+os.environ["QT_LOGGING_RULES"] = "qt.qpa.fonts=false"
+
 # Globals
 
 global region
