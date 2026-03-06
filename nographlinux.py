@@ -120,7 +120,27 @@ class LibreLinkUpClient:
                 return json.load(file)
         except json.JSONDecodeError as e:
             print(f"❌ Error parsing Email config: {e}")
-            return None        
+            return None  
+
+    def maybe_send_hourly_email(self):
+        """Send glucose email at the top of each hour based on real time."""
+        now = datetime.now()
+        current_hour = now.hour
+
+        # Only send once per hour
+        if self.last_email_hour == current_hour:
+            return  # Already sent this hour
+
+        # Load config only if needed
+        config = self.load_email_config()
+        if not config:
+            return
+
+        glucose = self.get_latest_glucose()
+        if glucose:
+            self.send_glucose_email(glucose)
+            print(f"📨 Email sent at {now.strftime('%H:%M')}")
+            self.last_email_hour = current_hour             
 
     def load_credentials(self):
         """Load email and password from JSON file"""
@@ -134,6 +154,8 @@ class LibreLinkUpClient:
 
     def login(self):
         credentials = self.load_credentials()
+
+        self.last_email_hour = None
 
         if not credentials or "email" not in credentials or "password" not in credentials:
             print("⚠ No credentials found. Please enter your email and password.")
@@ -238,6 +260,7 @@ class LibreLinkUpClient:
                     for entry in new_data:
                         cursor.execute(query, (entry["value"], entry["timestamp"]))
                     connection.commit()
+                    self.maybe_send_hourly_email()  # triggers at HH:00 only
                     print(f"✅ Inserted {len(new_data)} glucose readings.")
                 except mysql.connector.Error as err:
                     print(f"❌ MySQL insert error: {err}")
