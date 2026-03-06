@@ -13,4 +13,4 @@ And simply run the program later you can use the MySQL data in other programs to
 
 Just one thing it interferes with the Screen Saver in Windows 10 when if you want I have another project which solves that problem.
 
-Will add ag email option if available in a future version which will send an email every hour to where ever you wish.
+Will add an email option if available in a future version which will send an email every hour to where ever you wish.
