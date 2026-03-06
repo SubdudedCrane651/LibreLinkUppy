@@ -2,8 +2,8 @@
 
 ** Added a MySQL option where you create a mysql_config.json in your documents folder in your <b>drive</b>:/Users/<b>username</b>/Documents directory location not Onedrive like this
 
-{  
-        "host":"hostname",
+{</br>  
+        "host":"hostname",</br>
         "user":"username",
         "password":"password123",
         "database":"databasename"
