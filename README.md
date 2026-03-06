@@ -3,10 +3,10 @@
 ** Added a MySQL option where you create a mysql_config.json in your documents folder in your <b>drive</b>:/Users/<b>username</b>/Documents directory location not Onedrive like this
 
 {
-        "host":"hostname",</br>
-        "user":"username",</br>
-        "password":"password123",</br>
-        "database":"databasename"</br>
+        "host":"hostname",<br>
+        "user":"username",<br>
+        "password":"password123",<br>
+        "database":"databasename"<br>
 }
 
 And simply run the program later you can use the MySQL data in other programs to manipulate them how ever you wish.
