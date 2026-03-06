@@ -2,7 +2,7 @@
 
 ** Added a MySQL option where you create a mysql_config.json in your documents folder in your <b>drive</b>:/Users/<b>username</b>/Documents directory location not Onedrive like this
 
-{
+{<br>
         "host":"hostname",<br>
         "user":"username",<br>
         "password":"password123",<br>
@@ -19,10 +19,10 @@ Will add an email option if available in a future version which will send an ema
 
 The email is found in the email_config.json in this format
 
-{
-    "smtp_server": "smtp.gmail.com",
-    "smtp_port": 587,
-    "email": "youraddress@gmail.com",
-    "password": "yourpassword",
-    "recipient": "destination@example.com"
+{<br>
+    "smtp_server": "smtp.gmail.com",<br>
+    "smtp_port": 587,<br>
+    "email": "youraddress@gmail.com",<br>
+    "password": "yourpassword",<br>
+    "recipient": "destination@example.com"<br>
 }
