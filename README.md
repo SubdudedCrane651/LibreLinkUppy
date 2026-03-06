@@ -13,4 +13,6 @@ And simply run the program later you can use the MySQL data in other programs to
 
 Just one thing it interferes with the Screen Saver in Windows 10 when if you want I have another project which solves that problem.
 
+I use a version for Linux where it is more stable and my computer reboots even after a power failure where this is usefull. Don`t loose access to it unlike my newer computers that power off after a long delay. I have a UPS but for only 10 minutes over that I am screwed. As for running the same Python code for the nograph.py and haveing all .json files found in the /home/<username>/ directory compared to the Windows installation.
+
 Will add an email option if available in a future version which will send an email every hour to where ever you wish.
