@@ -81,6 +81,7 @@ class LibreLinkUpClient:
                 connect_timeout=5
             )
             print("✅ Connected to MySQL")
+            self.maybe_send_hourly_email()  # triggers at HH:00 only
             return connection
         except mysql.connector.Error as err:
             print(f"❌ MySQL connection error: {err}")
@@ -136,9 +137,20 @@ class LibreLinkUpClient:
         if not config:
             return
 
-        glucose = self.get_latest_glucose()
-        if glucose:
-            self.send_glucose_email(glucose)
+        glucose = [entry["value"] for entry in client.glucose_data]
+        times = [entry["timestamp"] for entry in client.glucose_data]  # ✅ Keep timestamps as datetime objects
+
+        if len(glucose) == 48:
+            g46 = glucose[47]
+            t46 = times[47]  # datetime object
+        else:
+            return  # Not enough data yet
+        
+        reading_minute = t46.minute
+        
+        #if reading_minute == 0:  # Send email at the start of each hour
+        if reading_minute:
+            self.send_glucose_email(g46)
             print(f"📨 Email sent at {now.strftime('%H:%M')}")
             self.last_email_hour = current_hour             
 
@@ -260,7 +272,6 @@ class LibreLinkUpClient:
                     for entry in new_data:
                         cursor.execute(query, (entry["value"], entry["timestamp"]))
                     connection.commit()
-                    self.maybe_send_hourly_email()  # triggers at HH:00 only
                     print(f"✅ Inserted {len(new_data)} glucose readings.")
                 except mysql.connector.Error as err:
                     print(f"❌ MySQL insert error: {err}")
