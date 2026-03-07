@@ -26,3 +26,5 @@ The email is found in the email_config.json in this format
     "password": "yourpassword",<br>
     "recipient": "destination@example.com"<br>
 }
+
+N.B. All progrmas work efectively on both Windows and Linux have not tested on a Mac but sure with some tweaks it's possible.
