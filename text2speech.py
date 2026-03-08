@@ -1,8 +1,8 @@
 # Import the required module for text
 # to speech conversion
 import sys
-sys.path.append('.venv/Lib/site-packages/')
-#sys.path.append('/home/richard/.local/lib/python3.8/site-packages/')
+#sys.path.append('.venv/Lib/site-packages/')
+sys.path.append('F:/Python/Blood_Pressure_Tracker/BOSGAME/.venv/Lib/site-packages/')
 from gtts import gTTS
 from playsound import playsound
 # This module is imported so that we can
