@@ -1,116 +1,86 @@
-# Import the required module for text
-# to speech conversion
 import sys
-#sys.path.append('.venv/Lib/site-packages/')
-sys.path.append('F:/Python/Blood_Pressure_Tracker/BOSGAME/.venv/Lib/site-packages/')
-from gtts import gTTS
-#from playsound import playsound
-import time
-# This module is imported so that we can
-# play the converted audio
 import os
-# The text that you want to convert to audio
-count = 0
-mytext= []
-command=""
-command2=""
-file=""
-deletefiles=False
-language="en"
+import time
+import pygame
+from gtts import gTTS
 
-length = len(sys.argv)
+def parse_input():
+    args = sys.argv[1:]
+    language = "en"
+    text_list = []
 
-try:
+    # No arguments → play default audio
+    if not args:
+        return language, None, True
 
-  command = sys.argv[1]
+    # Handle --lang=xx
+    if args[0].startswith("--lang="):
+        language = args[0].split("=")[1]
+        args = args[1:]  # remove the lang argument
 
-  if length > 3:
-      command = sys.argv[1]
-      command2 = sys.argv[2]
-      if (command2 == "--in" or command.find("--lang")>-1):
-        if command=="--lang=fr":
-          language="fr"
-          mytext.append(sys.argv[2])   
-        if command=="--lang=en":
-          language="en"
-          mytext.append(sys.argv[2])
-        if command2=="--in":
-          file = sys.argv[3]
-          with open(file,'r+') as File:
-            mytext = File.readlines()
-        else:       
-            mytext.append(command)
+    # Handle --in filename
+    if args and args[0] == "--in":
+        filename = args[1]
+        with open(filename, "r", encoding="utf-8") as f:
+            text_list = f.readlines()
+        return language, text_list, False
 
-  elif length==3:
-    command = sys.argv[1]
-    if (command == "--in" or command.find("--lang")>-1):
-      if command=="--lang=fr":
-        language="fr"
-        mytext.append(sys.argv[2])   
-      if command=="--lang=en":
-        language="en"
-        mytext.append(sys.argv[2])
-      if command=="--in":
-        file = sys.argv[2]
-        with open(file,'r+') as File:
-            mytext = File.readlines()
-    else:       
-        mytext.append(command)
+    # Otherwise treat remaining args as text
+    text_list = [" ".join(args)]
+    return language, text_list, False
 
-  else:
-    playsound(os.path.dirname(__file__)+r"/speak_0.mp3")
-    sys.exit()
+def safe_delete(path):
+    """Try to delete a file with retries (Windows-safe)."""
+    for _ in range(30):
+        try:
+            if os.path.exists(path):
+                os.remove(path)
+            return
+        except PermissionError:
+            time.sleep(0.1)
 
-except:
-   try:
-    playsound(os.path.dirname(__file__)+r"/speak_0.mp3")
-   except:
-    sys.exit()
+def speak_chunks(mytext, language="en"):
+    base = os.path.dirname(__file__)
+    files = []
+    count = 0
 
+    # Initialize pygame ONCE
+    pygame.mixer.init()
 
-myobj = gTTS(text="mytext", lang=language, slow=False)   
+    for text in mytext:
+        text = text.strip()
+        if not text:
+            continue
 
-#mytext = "Call from Clement Perreault at 450-655-4677"
-# Language in which you want to convert
+        print(text)
 
+        audio_file = os.path.join(base, f"speak_{count}.mp3")
+        files.append(audio_file)
 
-for text in mytext:
-    # Passing the text and language to the engine,
-    # here we have marked slow=False. Which tells
-    # the module that the converted audio should
-    # have a high speed
-    if text != "":
-    # Saving the converted audio in a mp3 file named
-    # welcome
-      print(text)
-      myobj.text=text
-      audio_file = os.path.dirname(__file__)+"/speak_"+str(count)+".mp3"
-      # Delete the file if it exists
-      if os.path.exists(audio_file):
-         os.remove(audio_file)
-      myobj.save(audio_file)
-    # Playing the converted file
-      import pygame
+        # Delete old file if exists
+        safe_delete(audio_file)
 
-      pygame.mixer.init()
-      pygame.mixer.music.load(audio_file)
-      pygame.mixer.music.play()
+        # Create NEW gTTS object each time
+        tts = gTTS(text=text, lang=language, slow=False)
+        tts.save(audio_file)
 
-      # Wait for playback to finish
-      while pygame.mixer.music.get_busy():
-          time.sleep(0.1)
+        # Play audio
+        pygame.mixer.music.load(audio_file)
+        pygame.mixer.music.play()
 
-      # RELEASE THE FILE LOCK
-      pygame.mixer.music.stop()
-      pygame.mixer.quit()
+        # Wait for playback
+        while pygame.mixer.music.get_busy():
+            time.sleep(0.1)
 
+        count += 1
 
-      #playsound(audio_file)
-      count=count+1
-      if count==2:
-        count=0
-        os.remove("speak_"+str(count)+".mp3")
-        os.remove("speak_"+str(count+1)+".mp3")
-        deletefiles=True
-if deletefiles:        
- myobj.save(audio_file)          
+    # Release ALL locks
+    pygame.mixer.music.stop()
+    pygame.mixer.quit()
+
+        # Delete all files safely
+    for f in files:
+        safe_delete(f)
+   
+language, mytext, play_default = parse_input()
+speak_chunks(mytext, language)
