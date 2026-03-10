@@ -4,7 +4,8 @@ import sys
 #sys.path.append('.venv/Lib/site-packages/')
 sys.path.append('F:/Python/Blood_Pressure_Tracker/BOSGAME/.venv/Lib/site-packages/')
 from gtts import gTTS
-from playsound import playsound
+#from playsound import playsound
+import time
 # This module is imported so that we can
 # play the converted audio
 import os
@@ -89,7 +90,22 @@ for text in mytext:
          os.remove(audio_file)
       myobj.save(audio_file)
     # Playing the converted file
-      playsound(audio_file)
+      import pygame
+
+      pygame.mixer.init()
+      pygame.mixer.music.load(audio_file)
+      pygame.mixer.music.play()
+
+      # Wait for playback to finish
+      while pygame.mixer.music.get_busy():
+          time.sleep(0.1)
+
+      # RELEASE THE FILE LOCK
+      pygame.mixer.music.stop()
+      pygame.mixer.quit()
+
+
+      #playsound(audio_file)
       count=count+1
       if count==2:
         count=0
