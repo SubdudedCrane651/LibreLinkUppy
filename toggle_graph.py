@@ -14,7 +14,8 @@ import matplotlib.pyplot as plt
 import sys
 from datetime import datetime, timedelta
 import time
-#import pygame
+from gtts import gTTS, tts
+import pygame
 #import mysql.connector
 
 #pygame.init()
@@ -32,6 +33,16 @@ global region
 region = "ca"
 
 LAST_ALARM_TIME = 0
+
+def safe_delete(path):
+            """Try to delete a file with retries (Windows-safe)."""
+            for _ in range(30):
+                try:
+                    if os.path.exists(path):
+                        os.remove(path)
+                    return
+                except PermissionError:
+                    time.sleep(0.1)
 
 fig, ax = plt.subplots()
 class PollingThread(QThread):
@@ -91,7 +102,51 @@ class LibreLinkUpClient:
     #       "password":"password123",
     #       "database":"databasename"
     #}
-     
+      
+    def speak_chunks(mytext, language="fr"):
+        base = os.path.dirname(__file__)
+        files = []
+        count = 0
+
+        # Initialize pygame ONCE
+        pygame.mixer.init()
+
+        for text in mytext:
+            text = text.strip()
+            if not text:
+                continue
+
+            print(text)
+
+            audio_file = os.path.join(base, f"speak_{count}.mp3")
+            files.append(audio_file)
+
+            # Delete old file if exists
+            safe_delete(audio_file)
+
+            # Create NEW gTTS object each time
+            tts = gTTS(text=text, lang=language, slow=False)
+            tts.save(audio_file)
+
+            # Play audio
+            pygame.mixer.music.load(audio_file)
+            pygame.mixer.music.play()
+
+            # Wait for playback
+            while pygame.mixer.music.get_busy():
+                time.sleep(0.1)
+
+            count += 1
+
+        # Release ALL locks
+        pygame.mixer.music.stop()
+        pygame.mixer.quit()
+
+            # Delete all files safely
+        for f in files:
+            safe_delete(f)
+    
+    
     def load_mysql_config(self):
         """Load MySQL config from separate JSON file"""
         json_file_path = os.path.join(os.path.expanduser("~"), "Documents", "mysql_config.json")
@@ -373,13 +428,13 @@ for index, voice in enumerate(voices):
 # Replace 0 with the index of the French voice you found
 def speak_hyper_alert():
     #French voice using text2speech.py
-    os.system('python text2speech.py "--lang=fr" "Vous êtes actuellement en hyperglycémie. Veuillez prendre des mesures."')
-    #engine.say("You are presently in Hyper. Please take action.")
+    #os.system('python text2speech.py "--lang=fr" "Vous êtes actuellement en hyperglycémie. Veuillez prendre des mesures."')
+    LibreLinkUpClient.speak_chunks(["Vous êtes actuellement en hyperglycémie. Veuillez prendre des mesures."], language="fr")
     #engine.runAndWait()
     
 def speak_hypo_alert():
     #French voice using text2speech.py
-    os.system('python text2speech.py "--lang=fr" "Vous êtes actuellement en hypoglycémie. Veuillez prendre des mesures."')
+    LibreLinkUpClient.speak_chunks(["Vous êtes actuellement en hypoglycémie. Veuillez prendre des mesures."], language="fr")
     #engine.say("You are presently in Hypo. Please take action.")
     #engine.runAndWait()
 class GraphWindow(QWidget):
@@ -428,7 +483,6 @@ class GraphWindow(QWidget):
                     LAST_ALARM_TIME = current_time
                     
             if last_entry['value'] > 13.9:
-                pass
                 current_time = time.time()
                 if current_time - LAST_ALARM_TIME >= 60:
                     sound_alarm()

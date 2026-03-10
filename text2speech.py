@@ -1,8 +1,9 @@
 import sys
 import os
 import time
+#sys.path.append(".\.venv\Lib\site-packages")
+from gtts import gTTS, tts
 import pygame
-from gtts import gTTS
 
 def parse_input():
     args = sys.argv[1:]
