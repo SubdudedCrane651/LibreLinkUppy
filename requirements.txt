@@ -4,5 +4,5 @@ requests
 pyttsx3
 mysql-connector-python
 gtts
-PyQt5
+PyQt6
 pymysql

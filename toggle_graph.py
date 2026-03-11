@@ -2,11 +2,9 @@ import requests
 import hashlib
 import json
 import os
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QSystemTrayIcon, QMenu, QAction
-from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QApplication
-from PyQt5.QtCore import QTimer
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt6.QtGui import QIcon, QAction
+from PyQt6.QtWidgets import QSystemTrayIcon, QMenu, QWidget, QPushButton, QVBoxLayout, QApplication
+from PyQt6.QtCore import QTimer, QThread, pyqtSignal
 from matplotlib.animation import FuncAnimation
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -582,5 +580,5 @@ if __name__ == "__main__":
     main_widget.setWindowTitle("LibreLinkUppy Control Panel")
     main_widget.show()
     #main_widget.showMinimized()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
