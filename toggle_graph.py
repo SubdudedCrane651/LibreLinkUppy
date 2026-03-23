@@ -55,22 +55,31 @@ class PollingThread(QThread):
             f.write(f"{datetime.now().isoformat()} - {msg}\n")
 
     def run(self):
-        try:
-            print("🚀 PollingThread started")
-            while True:
+        print("🚀 PollingThread started")
+
+        while True:
+            try:
                 self.client.get_glucose_data()
+
                 if self.client.glucose_data:
                     last = self.client.glucose_data[-1]
-                    print(f"[{last['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}] Glucose: {last['value']} mmol/L")
+
+                    ts = last["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
+                    val = last["value"]
+                    print(f"[{ts}] Glucose: {val} mmol/L")
+
                     try:
                         self.client.insert_graph_data([last])
                     except Exception as e:
                         print(f"❌ insert_graph_data failed: {e}")
+
                     self.data_updated.emit()
-                time.sleep(5)
-        except Exception as e:
-            print(f"💥 PollingThread crashed: {e}")
-        
+
+            except Exception as e:
+                print(f"⚠️ Polling error: {e} — retrying in 5s")
+
+            time.sleep(5)
+            
 class LibreLinkUpClient:
     def __init__(self):
         self.auth_token = None
