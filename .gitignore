@@ -1,0 +1,8 @@
+dist/
+build/
+Output/
+IFTTT/
+.venv/
+__pycache__/
+*.exe
+*.dll
