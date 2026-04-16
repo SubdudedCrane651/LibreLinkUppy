@@ -152,6 +152,23 @@ class LibreLinkUpClient:
             # Delete all files safely
         for f in files:
             safe_delete(f)
+
+    IFTTT_file_path = os.path.join("IFTTT", "KEY.json")
+    #print(f"Loading credentials from: {IFTTT_file_path}")
+        
+    with open(IFTTT_file_path, "r") as file:
+        IFTTT_config = json.load(file)        
+
+    IFTTT_KEY = IFTTT_config[0]
+    EVENT = "low_glucose"
+
+    def trigger_alexa():
+        url = f"https://maker.ifttt.com/trigger/{EVENT}/with/key/{IFTTT_KEY}"
+        try:
+            requests.post(url)
+            print("Alexa alert triggered")
+        except Exception as e:
+            print("Error triggering Alexa:", e)            
     
     
     def load_mysql_config(self):

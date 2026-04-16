@@ -1,0 +1,79 @@
+# ⭐ How Alexa gets triggered (the key idea)
+Alexa **cannot** receive direct HTTP requests.
+
+But Alexa **can** be triggered by IFTTT.
+
+So your Python script will do this:
+
+```
+POST → https://maker.ifttt.com/trigger/low_glucose/with/key/YOUR_KEY
+```
+
+And IFTTT will trigger an Alexa routine that speaks:
+
+> “Richard, your glucose is low. Please take action.”
+
+---
+
+# ⭐ Step 1 — Create your IFTTT webhook
+1. Go to **ifttt.com**
+2. Create a new applet:
+   - **If** → Webhooks → “Receive a web request”
+   - Event name: `low_glucose`
+   - **Then** → Alexa → “Say a custom phrase”
+
+Example phrase:
+> “Richard, your glucose is low. Please take action.”
+
+IFTTT will give you a URL like:
+
+```
+https://maker.ifttt.com/trigger/low_glucose/with/key/ABC123XYZ
+```
+
+Keep this URL — your Python script will call it.
+
+---
+
+# ⭐ Step 2 — Add this to your Python program
+Here is the exact Python code you need:
+
+```python
+import requests
+
+IFTTT_KEY = "YOUR_KEY_HERE"
+EVENT = "low_glucose"
+
+def trigger_alexa():
+    url = f"https://maker.ifttt.com/trigger/{EVENT}/with/key/{IFTTT_KEY}"
+    try:
+        requests.post(url)
+        print("Alexa alert triggered")
+    except Exception as e:
+        print("Error triggering Alexa:", e)
+```
+
+Then in your glucose logic:
+
+```python
+if glucose < 4.0:
+    trigger_alexa()
+```
+
+That’s it.
+
+Your Python program now controls Alexa.
+
+---
+
+# ⭐ Step 3 — Alexa routine setup
+In the Alexa app:
+
+1. Create a new routine  
+2. Trigger: **IFTTT**  
+3. Action: **Alexa says → Custom phrase**  
+4. Choose the **specific Echo device** in your room  
+
+Now Alexa will speak automatically.
+---
+
