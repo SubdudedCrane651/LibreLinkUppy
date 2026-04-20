@@ -16,7 +16,7 @@ And IFTTT will trigger an Alexa routine that speaks:
 ---
 
 # ⭐ Step 1 — Create your IFTTT webhook
-1. Go to **ifttt.com**
+1. Go to ****
 2. Create a new applet:
    - **If** → Webhooks → “Receive a web request”
    - Event name: `low_glucose`

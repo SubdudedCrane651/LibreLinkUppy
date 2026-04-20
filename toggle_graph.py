@@ -20,6 +20,8 @@ import pygame
 #pygame.mixer.init()
 
 import warnings
+
+from webhook_call import WEBHOOK_URL, trigger_google_home_mini,trigger_alexa
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 import os
@@ -153,24 +155,6 @@ class LibreLinkUpClient:
         for f in files:
             safe_delete(f)
 
-    IFTTT_file_path = os.path.join("IFTTT", "KEY.json")
-    #print(f"Loading credentials from: {IFTTT_file_path}")
-        
-    with open(IFTTT_file_path, "r") as file:
-        IFTTT_config = json.load(file)        
-
-    IFTTT_KEY = IFTTT_config[0]
-    EVENT = "low_glucose"
-
-    def trigger_alexa():
-        url = f"https://maker.ifttt.com/trigger/{EVENT}/with/key/{IFTTT_KEY}"
-        try:
-            requests.post(url)
-            print("Alexa alert triggered")
-        except Exception as e:
-            print("Error triggering Alexa:", e)            
-    
-    
     def load_mysql_config(self):
         """Load MySQL config from separate JSON file"""
         json_file_path = os.path.join(os.path.expanduser("~"), "Documents", "mysql_config.json")
@@ -459,8 +443,10 @@ def speak_hyper_alert():
 def speak_hypo_alert():
     #French voice using text2speech.py
     LibreLinkUpClient.speak_chunks(["Vous êtes actuellement en hypoglycémie. Veuillez prendre des mesures."], language="fr")
+    trigger_google_home_mini()
     #engine.say("You are presently in Hypo. Please take action.")
     #engine.runAndWait()
+
 class GraphWindow(QWidget):
     def __init__(self, client):
         super().__init__()

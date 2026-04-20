@@ -1,0 +1,24 @@
+In the Home Assistant installed in Linux.
+
+Go to Settings-->Automations & Scenes-->Create Automations
+
+low_glucose
+
+Add Trigger
+Webhook ID=salon_speak
+
+Add action-->Text-to-speech (TTS) 'Speak'
+
+Add target-->Device=Google Translate en com
+
+Media player entity=Salon (Which was detected)
+
+Message=Vous êtes présentement en hypo, prendre action imédiatement
+
+Cache true
+
+Language=fr
+
+From the Python script request the WEBHOOK with
+"http://10.0.0.205:8123/api/webhook/salon_speak" from the network or
+"http://localhost:8123/api/webhook/salon_speak" local machine
