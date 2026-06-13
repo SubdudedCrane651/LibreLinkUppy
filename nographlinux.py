@@ -414,9 +414,20 @@ for index, voice in enumerate(voices):
 
 # Replace 0 with the index of the French voice you found
 
+WEBHOOK_URL = "http://10.0.0.205:8123/api/webhook/salon_speak"
+
+def trigger_google_home_mini():
+        url = WEBHOOK_URL
+        try:
+            requests.post(url)
+            print("Google Home Mini alert triggered")
+        except Exception as e:
+            print("Error triggering Google Home Mini:", e)
+
 def speak_hypo_alert():
     #French voice using text2speech.py
-    os.system('F:/Python/LibreLinkUppy/.venv/Scripts/python.exe text2speech.py "--lang=fr" "Vous êtes actuellement en hypoglycémie. Veuillez prendre des mesures."')
+    #os.system('F:/Python/LibreLinkUppy/.venv/Scripts/python.exe text2speech.py "--lang=fr" "Vous êtes actuellement en hypoglycémie. Veuillez prendre des mesures."')
+    trigger_google_home_mini()
     #engine.say("You are presently in Hypo. Please take action.")
     #engine.runAndWait()
 

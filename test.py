@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QPushButton, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QPushButton, QVBoxLayout, QWidget
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 
