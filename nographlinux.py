@@ -9,9 +9,6 @@ import time
 #import pygame
 import mysql.connector
 
-import smtplib
-from email.mime.text import MIMEText
-
 #pygame.init()
 #pygame.mixer.init()
 
@@ -20,6 +17,41 @@ region = "ca"
 
 LAST_ALARM_TIME = 0
 
+alert_active = False
+reference_ts = None
+
+
+from datetime import datetime, timedelta
+
+def check_entry(entry):
+    global alert_active, reference_ts
+
+    ts = entry["timestamp"]      # this is the reading’s timestamp
+    now = datetime.now()
+
+    # If no alert is active yet
+    if not alert_active:
+        if entry["value"] < 12:
+            # Start the 2-minute window based on this timestamp
+            reference_ts = ts
+            alert_active = True
+            speak_hypo_alert()
+        return
+
+    # If alert is active, wait until 2 minutes have passed from reference_ts
+    if alert_active:
+        if now - reference_ts >= timedelta(minutes=2):
+            # 2 minutes passed since the first low reading
+            # Check again if still under 12
+            if entry["value"] < 12:
+                speak_hypo_alert()
+                # Reset the window from this same reference_ts or a new one
+                reference_ts = ts  # or keep the old one if you prefer
+            else:
+                # Value recovered → stop alert cycle
+                alert_active = False
+                reference_ts = None
+        
 class LibreLinkUpClient:
     def __init__(self):
         self.auth_token = None
@@ -81,81 +113,10 @@ class LibreLinkUpClient:
                 connect_timeout=5
             )
             print("✅ Connected to MySQL")
-            self.maybe_send_hourly_email()  # triggers at HH:00 only
             return connection
         except mysql.connector.Error as err:
             print(f"❌ MySQL connection error: {err}")
             return None
-        
-    def send_glucose_email(self, glucose_value):
-        config = self.load_email_config()
-        if not config:
-            return
-
-        try:
-            msg = MIMEText(f"Current glucose reading: {glucose_value}")
-            msg["Subject"] = "LibreLinkUppy Glucose Update"
-            msg["From"] = config["email"]
-            msg["To"] = config["recipient"]
-
-            with smtplib.SMTP(config["smtp_server"], config["smtp_port"]) as server:
-                server.starttls()
-                server.login(config["email"], config["password"])
-                server.send_message(msg)
-
-            print("📨 Email sent successfully")
-
-        except Exception as e:
-            print(f"❌ Email sending error: {e}")        
-        
-    def load_email_config(self):
-        """Load Email config from separate JSON file"""
-        json_file_path = os.path.join(os.path.expanduser("~"), "Documents", "email_config.json")
-
-        if not os.path.exists(json_file_path):
-            print("⚠ Email config file not found.")
-            return None
-
-        try:
-            with open(json_file_path, "r") as file:
-                return json.load(file)
-        except json.JSONDecodeError as e:
-            print(f"❌ Error parsing Email config: {e}")
-            return None  
-
-    def maybe_send_hourly_email(self):
-        """Send glucose email at the top of each hour based on real time."""
-        now = datetime.now()
-        current_hour = now.hour
-
-        # Only send once per hour
-        if self.last_email_hour == current_hour:
-            return  # Already sent this hour
-
-        # Load config only if needed
-        config = self.load_email_config()
-        if not config:
-            return
-
-        glucose = [entry["value"] for entry in client.glucose_data]
-        times = [entry["timestamp"] for entry in client.glucose_data]  # ✅ Keep timestamps as datetime objects
-        
-        if glucose[47] < 4:
-            speak_hypo_alert()  # Trigger alert if glucose is below 4 mmol/L    
-
-        if len(glucose) == 48:
-            g46 = glucose[47]
-            t46 = times[47]  # datetime object
-        else:
-            return  # Not enough data yet
-        
-        reading_minute = t46.minute
-        
-        #if reading_minute == 0:  # Send email at the start of each hour
-        if reading_minute:
-            self.send_glucose_email(g46)
-            print(f"📨 Email sent at {now.strftime('%H:%M')}")
-            self.last_email_hour = current_hour             
 
     def load_credentials(self):
         """Load email and password from JSON file"""
@@ -169,8 +130,6 @@ class LibreLinkUpClient:
 
     def login(self):
         credentials = self.load_credentials()
-
-        self.last_email_hour = None
 
         if not credentials or "email" not in credentials or "password" not in credentials:
             print("⚠ No credentials found. Please enter your email and password.")
@@ -227,7 +186,8 @@ class LibreLinkUpClient:
         # print("⚠ Invalid email or password. Please re-enter.")
         # self.prompt_user()
         # return False
-        
+
+    
     def insert_graph_data(self, new_data):
         config = self.load_mysql_config()
         if not config:
@@ -238,6 +198,12 @@ class LibreLinkUpClient:
         if not connection:
             print("⚠ Skipping insert: No valid MySQL connection.")
             return
+        
+        #global alert_cooldown, cooldown_until
+        
+        for entry in new_data:
+            check_entry(entry)
+
         
         try:
             cursor = connection.cursor()
