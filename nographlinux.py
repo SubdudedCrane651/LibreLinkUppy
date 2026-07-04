@@ -139,6 +139,9 @@ class LibreLinkUpClient:
 
         glucose = [entry["value"] for entry in client.glucose_data]
         times = [entry["timestamp"] for entry in client.glucose_data]  # ✅ Keep timestamps as datetime objects
+        
+        if glucose[47] < 4:
+            speak_hypo_alert()  # Trigger alert if glucose is below 4 mmol/L    
 
         if len(glucose) == 48:
             g46 = glucose[47]
