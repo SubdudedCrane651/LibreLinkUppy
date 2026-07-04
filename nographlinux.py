@@ -31,7 +31,7 @@ def check_entry(entry):
 
     # If no alert is active yet
     if not alert_active:
-        if entry["value"] < 12:
+        if entry["value"] < 4:
             # Start the 2-minute window based on this timestamp
             reference_ts = ts
             alert_active = True
