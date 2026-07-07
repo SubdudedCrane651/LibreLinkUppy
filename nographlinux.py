@@ -43,7 +43,7 @@ def check_entry(entry):
         if now - reference_ts >= timedelta(minutes=2):
             # 2 minutes passed since the first low reading
             # Check again if still under 12
-            if entry["value"] < 12:
+            if entry["value"] <4:
                 speak_hypo_alert()
                 # Reset the window from this same reference_ts or a new one
                 reference_ts = ts  # or keep the old one if you prefer
